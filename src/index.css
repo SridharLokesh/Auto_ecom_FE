@@ -1,0 +1,137 @@
+
+
+@import "tailwindcss";
+/* ── CSS Variables — single source of truth for TVS brand colors ── */
+:root {
+  --brand: #0a1f44; /* TVS Navy Blue  */
+  --brand-hover: #0d2657; /* slightly lighter navy */
+  --brand-light: #e8eef7; /* pale blue bg   */
+  --accent: #1e40af; /* bright blue for highlights */
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
+    @apply text-gray-900 bg-white antialiased;
+  }
+}
+
+@layer components {
+  /* ─── Card ─── */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-200 shadow-sm;
+  }
+
+  /* ─── Primary Button  (dark navy) ─── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           text-white font-semibold rounded-xl px-5 py-2.5
+           transition-all duration-150 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed
+           cursor-pointer select-none;
+    background-color: var(--brand);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--brand-hover);
+  }
+
+  /* ─── Secondary / outline button ─── */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           font-semibold rounded-xl px-5 py-2.5 border-2
+           transition-all duration-150 active:scale-95
+           cursor-pointer select-none bg-white;
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  .btn-secondary:hover {
+    background-color: var(--brand-light);
+  }
+
+  /* ─── Ghost button ─── */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           text-gray-600 hover:bg-gray-100 active:scale-95
+           font-medium rounded-xl px-4 py-2
+           transition-all duration-150 cursor-pointer select-none;
+  }
+
+  /* ─── Text input ─── */
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl border-2 border-gray-200
+           bg-white text-sm text-gray-900 placeholder-gray-400
+           transition-colors duration-150;
+    outline: none;
+  }
+  .input-field:focus {
+    border-color: var(--brand);
+  }
+
+  /* ─── Error state on input ─── */
+  .input-error {
+    @apply border-red-400;
+  }
+  .input-error:focus {
+    @apply border-red-400;
+  }
+
+  /* ─── Page wrapper ─── */
+  .page-wrapper {
+    @apply max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-6;
+  }
+
+  /* ─── Section heading ─── */
+  .section-title {
+    @apply text-xl md:text-2xl font-extrabold text-gray-900;
+  }
+
+  /* ─── Notification badge ─── */
+  .badge-count {
+    @apply absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px]
+           text-white text-[10px] font-bold rounded-full
+           flex items-center justify-center px-1 leading-none;
+    background-color: var(--brand);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}

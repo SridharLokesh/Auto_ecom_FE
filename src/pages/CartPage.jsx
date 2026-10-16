@@ -11,11 +11,10 @@ import {
   BadgeCheck,
   Truck,
 } from "lucide-react";
-import CartFulfillmentPanel from "../components/fulfillment/CartFulfillmentPanel";
 
 export default function CartPage({ cartHook }) {
   const navigate = useNavigate();
-  const { cart, updateCartItem, removeFromCart } = cartHook || {};
+  const { cart, updateQuantity, removeFromCart } = cartHook || {};
 
   const items = cart?.items || [];
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -57,9 +56,7 @@ export default function CartPage({ cartHook }) {
           ({items.length} {items.length === 1 ? "item" : "items"})
         </span>
       </h1>
-      
-      <CartFulfillmentPanel items={items} />
-      
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Items list */}
         <div className="lg:col-span-2 space-y-3">
@@ -117,7 +114,10 @@ export default function CartPage({ cartHook }) {
                       >
                         <button
                           onClick={() =>
-                            updateCartItem(product._id, item.quantity - 1)
+                            // Going below 1 removes the product from the cart
+                            item.quantity <= 1
+                              ? removeFromCart(product._id)
+                              : updateQuantity(product._id, item.quantity - 1)
                           }
                           className="p-1.5 hover:bg-gray-100 transition-colors"
                         >
@@ -128,7 +128,7 @@ export default function CartPage({ cartHook }) {
                         </span>
                         <button
                           onClick={() =>
-                            updateCartItem(product._id, item.quantity + 1)
+                            updateQuantity(product._id, item.quantity + 1)
                           }
                           className="p-1.5 hover:bg-gray-100 transition-colors"
                         >

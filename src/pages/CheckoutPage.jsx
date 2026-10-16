@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
+import CheckoutAddressPicker from "../components/CheckoutAddressPicker";
 
 import { 
   validateCheckout, 
@@ -51,16 +52,6 @@ export default function CheckoutPage({ auth, cartHook }) {
       .catch(() => {});
   }, []);
 
-    const getBrowserLocation = () =>
-   new Promise((resolve) => {
-      if (!navigator.geolocation) return resolve(null);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        () => resolve(null),
-        { timeout: 8000 }
-      );
-    });
-
    const handlePlaceOrder = async () => {
     if (!selectedAddress) { toast.error("Please select a delivery address"); return; }
     setPlacing(true);
@@ -72,43 +63,39 @@ export default function CheckoutPage({ auth, cartHook }) {
     // request body). If location isn't available in this browser/
     // session, we don't hard-block checkout — fall back to the legacy
     // order-creation flow instead.
-    const coords = await getBrowserLocation();
-
-    if (coords) {
-      let checkoutSessionId = null;
-      try {
-        const result = await validateCheckout(coords);
-        checkoutSessionId = result.checkoutSessionId;
-      } catch (err) {
-        toast.error(err.message || describeCheckoutError(err.code));
-        setPlacing(false);
-        return;
-      }
-
-      try {
-        await createOrderFromCheckout({
-          checkoutSessionId,
-          shippingAddress: selectedAddress,
-          paymentMethod,
-        });
-        await clearCart?.();
-        toast.success("Order placed successfully! 🎉");
-        navigate("/profile?tab=orders");
-      } catch (err) {
-        // Order creation failed — free the hold immediately rather than
-        // making the customer wait out the reservation TTL to retry.
-        releaseCheckout({ checkoutSessionId }).catch(() => {});
-        toast.error(err.response?.data?.message || "Failed to place order");
-      } finally {
-        setPlacing(false);
-      }
+    // The nearest dealer is found from the selected delivery address (its
+    // saved coordinates, or located once from its text). The browser is
+    // never asked for location here.
+    let checkoutSessionId = null;
+    try {
+      const result = await validateCheckout({ addressId: selectedAddress._id });
+      checkoutSessionId = result.checkoutSessionId;
+    } catch (err) {
+      toast.error(err.message || describeCheckoutError(err.code));
+      if (err.code === "ADDRESS_LOCATION_UNAVAILABLE") setStep(1); // pick another address / use current location
+      setPlacing(false);
       return;
     }
 
     // Fulfillment-aware checkout is mandatory. Never fall back to the legacy
     // /orders endpoint because that endpoint does not reserve node inventory.
-    toast.error("Location access is required to verify and reserve inventory near you.");
-    setPlacing(false);
+    try {
+      await createOrderFromCheckout({
+        checkoutSessionId,
+        shippingAddress: selectedAddress,
+        paymentMethod,
+      });
+      await clearCart?.();
+      toast.success("Order placed successfully! 🎉");
+      navigate("/profile?tab=orders");
+    } catch (err) {
+      // Order creation failed — free the hold immediately rather than
+      // making the customer wait out the reservation TTL to retry.
+      releaseCheckout({ checkoutSessionId }).catch(() => {});
+      toast.error(err.response?.data?.message || "Failed to place order");
+    } finally {
+      setPlacing(false);
+    }
   };
 
   if (items.length === 0) { navigate("/cart"); return null; }
@@ -144,39 +131,13 @@ export default function CheckoutPage({ auth, cartHook }) {
               <h2 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-[#0a1f44]" /> Delivery Address
               </h2>
-              {addresses.length === 0 ? (
-                <div className="text-center py-10">
-                  <MapPin className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-3">No saved addresses found.</p>
-                  <button onClick={() => navigate("/profile")}
-                    className="text-[#0a1f44] font-semibold text-sm hover:underline">
-                    Add address in Profile →
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {addresses.map((addr) => (
-                    <label key={addr._id}
-                      className={`flex gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
-                        ${selectedAddress?._id === addr._id
-                          ? "border-[#0a1f44] bg-blue-50/40"
-                          : "border-gray-200 hover:border-gray-300"}`}>
-                      <input type="radio" name="address"
-                        checked={selectedAddress?._id === addr._id}
-                        onChange={() => setSelectedAddress(addr)}
-                        className="mt-1 accent-[#0a1f44]" />
-                      <div>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full
-                          ${addr.label === "Home" ? "bg-blue-100 text-[#0a1f44]" : "bg-gray-100 text-gray-700"}`}>
-                          {addr.label}
-                        </span>
-                        <p className="text-sm text-gray-700 mt-1">{addr.street}, {addr.city}</p>
-                        <p className="text-sm text-gray-500">{addr.state} — {addr.pincode}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <CheckoutAddressPicker
+                addresses={addresses}
+                onAddressesChange={setAddresses}
+                selectedAddress={selectedAddress}
+                onSelect={setSelectedAddress}
+                items={items}
+              />
               <button onClick={() => selectedAddress && setStep(2)} disabled={!selectedAddress}
                 className="btn-primary w-full py-3 mt-5">
                 Continue to Payment

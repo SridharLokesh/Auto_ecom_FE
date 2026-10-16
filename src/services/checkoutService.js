@@ -20,19 +20,22 @@ export const CHECKOUT_ERROR_MESSAGES = {
   CHECKOUT_SESSION_EXPIRED: 'Your checkout session has expired. Please try again.',
   RESERVATION_FAILED: 'Inventory changed while you were checking out. Please review your cart and try again.',
   INVALID_LOCATION: 'We need your location to check delivery availability.',
+  ADDRESS_LOCATION_UNAVAILABLE: "We couldn't locate this address. Please select a different address or use your current location.",
+  ADDRESS_NOT_FOUND: 'The selected address was not found. Please select another address.',
 };
 
 export const describeCheckoutError = (code) => CHECKOUT_ERROR_MESSAGES[code] || 'Something went wrong during checkout. Please try again.';
 
 /**
- * validateCheckout({ latitude, longitude })
+ * validateCheckout({ addressId } | { latitude, longitude })
  * → success: { success:true, checkoutSessionId, expiresAt, fulfillmentPlan, summary }
  * → failure: throws an Error with `.code` set to the backend's error code,
  *   so callers can branch on it (or just show `describeCheckoutError`).
  */
-export const validateCheckout = async ({ latitude, longitude }) => {
+export const validateCheckout = async ({ addressId, latitude, longitude }) => {
   try {
-    const { data } = await api.post('/checkout/validate', { latitude, longitude });
+    const body = addressId ? { addressId } : { latitude, longitude };
+    const { data } = await api.post('/checkout/validate', body);
     return data;
   } catch (err) {
     const body = err.response?.data;

@@ -480,7 +480,11 @@ export default function ProductDetailPage({ auth, cartHook, wishlistHook }) {
               <Star className="w-3.5 h-3.5 fill-current" />
             </span>
             <span className="text-sm text-gray-500">{product.numReviews || 0} ratings</span>
-            {product.stock > 0 ? (
+            {product.stock > 0 && product.stock < 10 ? (
+              <span className="flex items-center gap-1 text-sm text-red-600 font-semibold">
+                Low stock ({product.stock} left)
+              </span>
+            ) : product.stock >= 10 ? (
               <span className="flex items-center gap-1 text-sm text-green-600 font-semibold">
                 <CheckCircle className="w-4 h-4" /> In Stock ({product.stock})
               </span>

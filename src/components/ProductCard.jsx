@@ -64,9 +64,9 @@ export default function ProductCard({ product, auth, cartHook, wishlistHook }) {
             </span>
           </div>
         )}
-        {product.stock > 0 && product.stock <= 5 && (
+        {product.stock > 0 && product.stock < 10 && (
           <span className="absolute bottom-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-            Only {product.stock} left!
+            Low stock · Only {product.stock} left
           </span>
         )}
 

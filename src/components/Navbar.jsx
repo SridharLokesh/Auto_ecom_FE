@@ -1,14 +1,26 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import NotificationPanel from "./NotificationPanel";
 import {
-  ShoppingCart, Heart, Search, User, ChevronDown, X,
-  LogOut, Settings, Package, Menu, Wrench, Shield,
-  Bell, Store, ChevronRight,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  Heart,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  Shield,
+  ShoppingCart,
+  Store,
+  User,
+  Wrench,
+  X,
 } from "lucide-react";
-import { useProducts } from "../hooks/useProducts";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import TVS_logo from "../assets/TVS_logo.png";
+import { useProducts } from "../hooks/useProducts";
 import api from "../utils/api";
+import NotificationPanel from "./NotificationPanel";
 
 /* Resolve logo URLs — uploaded logos are stored as "/uploads/..." on the backend */
 const BACKEND = import.meta.env.VITE_API_URL
@@ -23,50 +35,58 @@ const resolveLogoUrl = (url) => {
 
 export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPillsVisible }) {
   const { user, logout, isLoggedIn } = auth || {};
-  const cartCount     = cartHook?.cartCount     ?? 0;
+  const cartCount = cartHook?.cartCount ?? 0;
   const wishlistCount = wishlistHook?.wishlistCount ?? 0;
   const { notifications = [], unreadCount = 0, markRead, markAllRead, deleteNotif } = notifHook || {};
 
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { searchResults, searchProducts, clearSearch } = useProducts();
 
-  const [searchQuery,       setSearchQuery]    = useState("");
-  const [showMoreMenu,      setShowMoreMenu]   = useState(false);
-  const [showUserMenu,      setShowUserMenu]   = useState(false);
-  const [showNotifPanel,    setShowNotifPanel] = useState(false);
-  const [mobileMenuOpen,    setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen,  setMobileSearchOpen] = useState(false);
-  const [categories,        setCategories]     = useState([]);
-  const [catsLoading,       setCatsLoading]    = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [categories, setCategories] = useState([
+    { name: "Engine Parts", slug: "engine-parts", navOrder: 1 },
+    { name: "Braking System", slug: "braking-system", navOrder: 2 },
+    { name: "Electrical & Lighting", slug: "electrical-lighting", navOrder: 3 },
+    { name: "Transmission & Clutch", slug: "transmission-clutch", navOrder: 4 },
+    { name: "Tyres & Wheels", slug: "tyres-wheels", navOrder: 5 },
+    { name: "Oils & Lubricants", slug: "oils-lubricants", navOrder: 6 },
+  ]);
+
+  const [catsLoading, setCatsLoading] = useState(false);
   const [mobileExpandedCat, setMobileExpandedCat] = useState(null);
-  const [headerHeight,      setHeaderHeight]   = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const [openCatDropdown, setOpenCatDropdown] = useState(null);
-  const [dropdownSubs,    setDropdownSubs]    = useState([]);
-  const [dropdownName,    setDropdownName]    = useState("");
+  const [dropdownSubs, setDropdownSubs] = useState([]);
+  const [dropdownName, setDropdownName] = useState("");
   const [dropdownLoading, setDropdownLoading] = useState(false);
 
   /* ── site settings (promo bar + logo from admin) ── */
   const [siteSettings, setSiteSettings] = useState({
-    promoText:    'Genuine TVS Parts & Accessories — Free shipping above ₹999 — 1 Year Warranty on all parts',
-    promoColor:   '#de1c0e',
+    promoText: 'Genuine TVS Parts & Accessories — Free shipping above ₹999 — 1 Year Warranty on all parts',
+    promoColor: '#de1c0e',
     promoVisible: true,
-    logoLight:    null,
+    logoLight: null,
   });
 
-  const searchRef   = useRef(null);
+  const searchRef = useRef(null);
   const mobileSearchRef = useRef(null);
-  const moreRef     = useRef(null);
-  const userRef     = useRef(null);
-  const notifRef    = useRef(null);
-  const headerRef   = useRef(null);
-  const pillRefs    = useRef({});
+  const moreRef = useRef(null);
+  const userRef = useRef(null);
+  const notifRef = useRef(null);
+  const headerRef = useRef(null);
+  const pillRefs = useRef({});
   const searchTimer = useRef(null);
 
   const isDealer = user?.role === "dealer";
-  const isAdmin  = user?.role === "admin";
-  const isUser   = user?.role === "user";
+  const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
   const showCartWishlist = isLoggedIn && isUser;
 
   const activeCatSlug = location.pathname.match(/\/products\/category\/([^/?]+)/)?.[1]?.toLowerCase() || null;
@@ -79,10 +99,10 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
       .then(({ data }) => {
         if (data?.navbar) {
           setSiteSettings({
-            promoText:    data.navbar.promoText    ?? 'Genuine TVS Parts & Accessories — Free shipping above ₹999 — 1 Year Warranty on all parts',
-            promoColor:   data.navbar.promoColor   ?? '#de1c0e',
+            promoText: data.navbar.promoText ?? 'Genuine TVS Parts & Accessories — Free shipping above ₹999 — 1 Year Warranty on all parts',
+            promoColor: data.navbar.promoColor ?? '#de1c0e',
             promoVisible: data.navbar.promoVisible ?? true,
-            logoLight:    resolveLogoUrl(data.navbar.logoLight) || null,
+            logoLight: resolveLogoUrl(data.navbar.logoLight) || null,
           });
         }
       })
@@ -134,8 +154,8 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
   /* ── Click-outside handler ── */
   useEffect(() => {
     const h = (e) => {
-      if (moreRef.current  && !moreRef.current.contains(e.target))  setShowMoreMenu(false);
-      if (userRef.current  && !userRef.current.contains(e.target))  setShowUserMenu(false);
+      if (moreRef.current && !moreRef.current.contains(e.target)) setShowMoreMenu(false);
+      if (userRef.current && !userRef.current.contains(e.target)) setShowUserMenu(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifPanel(false);
       if (searchRef.current && !searchRef.current.contains(e.target)) clearSearch?.();
       if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) {
@@ -197,7 +217,7 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
     navigate(`/products/category/${catSlug}?sub=${subSlug}`);
   }, [navigate]);
 
-  const goCart     = () => navigate("/cart");
+  const goCart = () => navigate("/cart");
   const goWishlist = () => navigate("/wishlist");
   const toggleMobileCat = (slug) => setMobileExpandedCat(p => p === slug ? null : slug);
 
@@ -229,7 +249,7 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
 
   return (
     <>
-     <style>{`
+      <style>{`
   @keyframes navDropdown {
     from {
       opacity: 0;
@@ -289,16 +309,16 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
       <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         {/* Promo strip — hidden on mobile, driven by admin settings */}
         {siteSettings.promoVisible && (
-        <div
-  className="text-white overflow-hidden"
-  style={{ backgroundColor: siteSettings.promoColor }}
->
-  <div className="py-1.5 px-3 text-[11px] sm:text-xs md:text-sm font-medium text-center">
-    <span className="promo-marquee md:whitespace-normal">
-      {siteSettings.promoText}
-    </span>
-  </div>
-</div>
+          <div
+            className="text-white overflow-hidden"
+            style={{ backgroundColor: siteSettings.promoColor }}
+          >
+            <div className="py-1.5 px-3 text-[11px] sm:text-xs md:text-sm font-medium text-center">
+              <span className="promo-marquee md:whitespace-normal">
+                {siteSettings.promoText}
+              </span>
+            </div>
+          </div>
         )}
 
         <div className="max-w-screen-2xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
@@ -359,7 +379,7 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
           )}
 
           {/* ── Main row ── */}
-         <div className="flex items-center justify-between py-2.5 sm:py-3">
+          <div className="flex items-center justify-between py-2.5 sm:py-3">
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
@@ -407,28 +427,28 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
             </div>
 
             {/* ── Right icons ── */}
-           <div className="flex items-center gap-1 sm:gap-4 lg:gap-5 ml-2 sm:ml-6 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-4 lg:gap-5 ml-2 sm:ml-6 flex-shrink-0">
 
               {/* ══ MOBILE ONLY icons (< sm = < 640px) ══ */}
 
               {/* Mobile: Search icon */}
-            <div
-  className="sm:hidden cursor-pointer"
-  onClick={() => {
-    setMobileSearchOpen(true);
-    setMobileMenuOpen(false);
-  }}
->
-  <button className="p-2.5 rounded-xl bg-gray-200 transition-colors">
-    <Search className="w-4 h-4 text-black-600" />
-  </button>
-</div>
+              <div
+                className="sm:hidden cursor-pointer"
+                onClick={() => {
+                  setMobileSearchOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <button className="p-2.5 rounded-xl bg-gray-200 transition-colors">
+                  <Search className="w-4 h-4 text-black-600" />
+                </button>
+              </div>
 
               {/* Profile — always visible on all screens */}
               {isLoggedIn ? (
                 <div className="relative" ref={userRef}>
                   <button onClick={() => setShowUserMenu(s => !s)}
-                   className="flex items-center gap-1 px-1 sm:px-2 md:px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors">
+                    className="flex items-center gap-1 px-1 sm:px-2 md:px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors">
                     <div className="w-7 h-7 bg-[#de1c0e] ml-3 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {user?.name?.[0]?.toUpperCase() ?? "U"}
                     </div>
@@ -492,7 +512,7 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
               {/* More dropdown — desktop */}
               <div className="relative hidden sm:block" ref={moreRef}>
                 <button onClick={() => setShowMoreMenu(s => !s)}
-                 className="flex items-center gap-1 px-2 py-2 rounded-xl hover:bg-gray-100 transition-colors text-sm text-gray-600 font-medium">
+                  className="flex items-center gap-1 px-2 py-2 rounded-xl hover:bg-gray-100 transition-colors text-sm text-gray-600 font-medium">
                   More <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showMoreMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showMoreMenu && (
@@ -545,7 +565,7 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
 
               {/* ── MOBILE hamburger (< sm) ── */}
               <button onClick={() => { setMobileMenuOpen(s => !s); setMobileSearchOpen(false); }}
-              className="sm:hidden flex-shrink-0 mr-2 p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
+                className="sm:hidden flex-shrink-0 mr-2 p-2 rounded-xl hover:bg-gray-100 transition-colors relative">
                 <Menu className="w-5 h-5 text-gray-600" />
                 {/* Badge on hamburger = total of cart+wishlist+notif */}
                 {(cartCount + wishlistCount + unreadCount) > 0 && (
@@ -567,9 +587,9 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
             ) : (
               <div className="flex items-center justify-evenly overflow-x-auto no-scrollbar">
                 {[...categories, { name: "All Parts", slug: "__all__" }].map(({ name, slug }) => {
-                  const isAll          = slug === "__all__";
-                  const isActive       = isAll ? !activeCatSlug : activeCatSlug === slug;
-                  const showChevron    = !isAll && isActive && pillsAreHidden;
+                  const isAll = slug === "__all__";
+                  const isActive = isAll ? !activeCatSlug : activeCatSlug === slug;
+                  const showChevron = !isAll && isActive && pillsAreHidden;
                   const isDropdownOpen = openCatDropdown === slug;
 
                   return (
@@ -741,9 +761,9 @@ export default function Navbar({ auth, cartHook, wishlistHook, notifHook, subPil
               </div>
             ) : (
               categories.map(({ name, slug, subCategories = [] }) => {
-                const subs       = (subCategories || []).filter(s => s.isActive !== false);
+                const subs = (subCategories || []).filter(s => s.isActive !== false);
                 const isExpanded = mobileExpandedCat === slug;
-                const isActive   = activeCatSlug === slug;
+                const isActive = activeCatSlug === slug;
                 return (
                   <div key={slug}>
                     <div className="flex items-center">

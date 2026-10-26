@@ -6,7 +6,6 @@ console.log('ALL ENV:', import.meta.env);
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://e-commerce-product-backend-ut34.onrender.com',
-  //'https://backend-focus-seu6.onrender.com/api' ||
   timeout: 15000,
 });
 console.log('API baseURL:', api.defaults.baseURL);
